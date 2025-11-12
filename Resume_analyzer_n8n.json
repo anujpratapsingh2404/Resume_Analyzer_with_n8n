@@ -1,0 +1,666 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Job Application Form",
+        "formDescription": "Please fill out this application",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone no.",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Resume",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -22976,
+        20240
+      ],
+      "id": "56a5f707-9808-4d9c-8011-9a38760cf113",
+      "name": "On form submission",
+      "webhookId": "95387739-651b-4580-a686-3528be478bb1"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "Resume",
+        "name": "={{ $json.Resume[0].filename }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1J1aukDxBRVwa7Kvogzma_28F40_h5sZf",
+          "mode": "list",
+          "cachedResultName": "Upload_CV",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1J1aukDxBRVwa7Kvogzma_28F40_h5sZf"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -22752,
+        20240
+      ],
+      "id": "b7b137bc-855b-4a7a-acfc-c7473e386b14",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Authorized_Google_Drive_Account",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -22528,
+        20240
+      ],
+      "id": "e107052b-d031-49c5-a9bf-c5a25285850f",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Authorized_Google_Drive_Account",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -22304,
+        20240
+      ],
+      "id": "016ea1e1-4d08-43f6-977f-0cdc37fdeab6",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Candidates Resume : {{ $('Extract from File').item.json.text }}\n\nJob Description Requirements: {{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# ROLE & TASK\nYou are an expert technical recruiter analyzing a RESUME against a JOB DESCRIPTION (JD). Your sole task is to generate a concise screening report focusing only on the specified criteria. Be efficient.\n\n# REQUIRED OUTPUT\nYour output MUST adhere strictly to the format below. Do not include any extra commentary, introductions, or additional text.\n\nCandidate Strengths:\n[List the candidate's top 3 specific strengths relevant to the JD.]\n\nOverall Fit Rating (0-100):\n[A whole number score from 0 to 100.]\n\nJustification for Rating:\n[Briefly explain the score. Reference specific resume/JD points for alignment or misalignment.]\n\n## Job Description\n{{ $json.text }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -21600,
+        20240
+      ],
+      "id": "4e331489-0e92-4959-812b-87a3f5e45dbd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -21632,
+        20464
+      ],
+      "id": "9224aba8-3e3f-4011-a680-e8dc26fb7a66",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Authorized_GPt/GEMINI_Account",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1B37jZid56tUbcy4oMlt8wC-6iteZ870DnpSDEz6mKWI",
+          "mode": "list",
+          "cachedResultName": "CV_analyser",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B37jZid56tUbcy4oMlt8wC-6iteZ870DnpSDEz6mKWI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Applicant Name": "={{ $('On form submission').item.json.Name }}",
+            "Email Address": "={{ $('On form submission').item.json.Email }}",
+            "Phone Number": "={{ $('On form submission').item.json['Phone no.'] }}",
+            "AI Rating": "={{ $('AI Agent').item.json.output.overall_fit_score }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Applicant Name",
+              "displayName": "Applicant Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Rating",
+              "displayName": "AI Rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "09f88495-f6a4-49e1-a5db-3d4d03381b4e",
+      "name": "Database Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -20688,
+        20144
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Authorized_Google_Sheet_Account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.overall_fit_score }}",
+                    "rightValue": 70,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    },
+                    "id": "5bf688d1-3020-482b-8847-d4dc339b5186"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Low Score"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.overall_fit_score }}",
+                    "rightValue": 70,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "id": "e58e3a0b-9003-4174-b31f-12978b778a52"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "High Score"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "5bc2e07d-c221-43c1-a00f-29af0afcf7b3",
+      "name": "Route by Score",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -21136,
+        20240
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email === $('AI Agent').item.json.output.cv_email ? $('On form submission').item.json.Email : $('On form submission').item.json.Email + ', ' + $('AI Agent').item.json.output.cv_email }}",
+        "subject": "Application Status Update",
+        "message": "=Dear {{ $('On form submission').item.json.Name }},<br><br>Thank you for your interest in the position. After careful review of your application, we regret to inform you that we will not be moving forward with your candidacy at this time.<br><br>We appreciate the time you invested in the application process and wish you the best in your job search.<br><br>Best regards,<br>UPadpro Team",
+        "options": {}
+      },
+      "id": "457dc0e2-890d-49c5-b330-758d0272fe72",
+      "name": "Send Rejection Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -20912,
+        20096
+      ],
+      "webhookId": "d98b8417-756a-46d1-af57-48b612952ff5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Authorized_Gmail_Account",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email === $('AI Agent').item.json.output.cv_email ? $('On form submission').item.json.Email : $('On form submission').item.json.Email + ', ' + $('AI Agent').item.json.output.cv_email }}",
+        "subject": "Congratulations - Next Steps",
+        "message": "=Dear {{ $('On form submission').item.json.Name }},<br><br>Congratulations! We are pleased to inform you that your application has been shortlisted. Your qualifications and experience align well with our requirements.<br><br>Our team will be in touch with you shortly to discuss the next steps in the interview process.<br><br>Best regards,<br>UPadpro Team",
+        "options": {}
+      },
+      "id": "e669685a-3cd2-46e7-8b4b-1adcf2759f33",
+      "name": "Send Success Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -20912,
+        20336
+      ],
+      "webhookId": "4d6187e6-6010-456f-9773-5dabb4581c56",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Authorized_Gmail_Account",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1B37jZid56tUbcy4oMlt8wC-6iteZ870DnpSDEz6mKWI",
+          "mode": "list",
+          "cachedResultName": "CV_analyser",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B37jZid56tUbcy4oMlt8wC-6iteZ870DnpSDEz6mKWI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 888413694,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B37jZid56tUbcy4oMlt8wC-6iteZ870DnpSDEz6mKWI/edit#gid=888413694"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Applicant Name": "={{ $('On form submission').item.json.Name }}",
+            "Email Address": "={{ $('On form submission').item.json.Email }}",
+            "Phone Number": "={{ $('On form submission').item.json['Phone no.'] }}",
+            "AI Rating": "={{ $('AI Agent').item.json.output.overall_fit_score }}",
+            "Match Summary": "={{ $('AI Agent').item.json.output.reward_factor.explanation }}"
+          },
+          "matchingColumns": [
+            "Applicant Name"
+          ],
+          "schema": [
+            {
+              "id": "Applicant Name",
+              "displayName": "Applicant Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Rating",
+              "displayName": "AI Rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Match Summary",
+              "displayName": "Match Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -20688,
+        20384
+      ],
+      "id": "37dad278-be4e-485d-aacc-b3d45a5863e7",
+      "name": "Shortlist Candidates",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Authorized_Google_Sheet_Account",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "a7fd1c05-171e-4d58-b6a8-cf7ab19103af",
+      "name": "Extract Job Description Text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -21856,
+        20240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1f_pnaYkuKARHqVH51ulsAwSuxTt24BCN",
+          "mode": "list",
+          "cachedResultName": "NET_Developer_AI_ML_Job_Description.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1f_pnaYkuKARHqVH51ulsAwSuxTt24BCN/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "id": "a45c3996-a626-4f1a-b088-80b654bfabe7",
+      "name": "Job Description",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -22080,
+        20240
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Authorized_Google_Drive_Account",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"name\": \"resume_screening_evaluation\",\n  \"description\": \"Analyzes a candidate's resume against a job description and outputs strengths, and an overall fit score.\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"cv_email\": {\n      \"type\": \"string\",\n      \"format\": \"email\",\n      \"description\": \"The candidate's email address extracted from the CV or resume.\"\n    },\n    \"candidate_strengths\": {\n      \"type\": \"array\",\n      \"description\": \"specificy specific strengths or qualifications that match the job requirements.\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"overall_fit_score\": {\n      \"type\": \"number\",\n      \"description\": \"A numerical score (0–100) representing the candidate's overall fit for the role.\"\n    }\n  },\n  \"required\": [\n    \"cv_email\",\n    \"candidate_strengths\",\n    \"overall_fit_score\"\n  ]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -21440,
+        20448
+      ],
+      "id": "3fbd1745-2c7e-400c-a630-58a81f218afe",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Route by Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Score": {
+      "main": [
+        [
+          {
+            "node": "Send Rejection Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Success Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Rejection Email": {
+      "main": [
+        [
+          {
+            "node": "Database Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Success Email": {
+      "main": [
+        [
+          {
+            "node": "Database Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Shortlist Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Job Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Job Description Text": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Description": {
+      "main": [
+        [
+          {
+            "node": "Extract Job Description Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fb7f292c-eb30-465d-a789-18310632b040",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5a507c8aab4a372d284d0bb7bbd98fb284dc1aac29755d00295b05e67ec79c37"
+  },
+  "id": "AY6guMBv921Mezt6",
+  "tags": []
+}
